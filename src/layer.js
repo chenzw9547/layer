@@ -390,7 +390,7 @@ Class.pt.auto = function(index){
         if(config.maxHeight > 0 && layero.outerHeight() > config.maxHeight){
           area[1] = config.maxHeight;
           setHeight('.'+doms[5]);
-        } else if(config.fixed && area[1] >= win.height()){
+        } else if(config.fixed && win.height() > 0 && area[1] >= win.height()){
           area[1] = win.height();
           setHeight('.'+doms[5]);
         }
@@ -403,14 +403,31 @@ Class.pt.auto = function(index){
   return that;
 };
 
+Class.pt.winWidth = function(){
+  	var winWidth = win.width();
+  	if(winWidth <= 0){
+  		winWidth = window.document.body.offsetWidth;
+  	}
+  	return winWidth;
+};
+
+Class.pt.winHeight = function(){
+  	var winHeight = win.height();
+  	if(winHeight <= 0){
+  		winHeight = window.document.body.offsetHeight;
+  	}
+  	return winHeight;
+};
+
 //计算坐标
 Class.pt.offset = function(){
   var that = this, config = that.config, layero = that.layero;
   var area = [layero.outerWidth(), layero.outerHeight()];
   var type = typeof config.offset === 'object';
-  that.offsetTop = (win.height() - area[1])/2;
-  that.offsetLeft = (win.width() - area[0])/2;
-  
+
+  that.offsetTop = (that.winHeight() - area[1])/2;
+  that.offsetLeft = (that.winWidth() - area[0])/2;  
+
   if(type){
     that.offsetTop = config.offset[0];
     that.offsetLeft = config.offset[1]||that.offsetLeft;
@@ -419,23 +436,23 @@ Class.pt.offset = function(){
     if(config.offset === 't'){ //上
       that.offsetTop = 0;
     } else if(config.offset === 'r'){ //右
-      that.offsetLeft = win.width() - area[0];
+      that.offsetLeft = that.winWidth() - area[0];
     } else if(config.offset === 'b'){ //下
-      that.offsetTop = win.height() - area[1];
+      that.offsetTop = that.winHeight() - area[1];
     } else if(config.offset === 'l'){ //左
       that.offsetLeft = 0;
     } else if(config.offset === 'lt'){ //左上角
       that.offsetTop = 0;
       that.offsetLeft = 0;
     } else if(config.offset === 'lb'){ //左下角
-      that.offsetTop = win.height() - area[1];
+      that.offsetTop = that.winHeight() - area[1];
       that.offsetLeft = 0;
     } else if(config.offset === 'rt'){ //右上角
       that.offsetTop = 0;
-      that.offsetLeft = win.width() - area[0];
+      that.offsetLeft = that.winWidth() - area[0];
     } else if(config.offset === 'rb'){ //右下角
-      that.offsetTop = win.height() - area[1];
-      that.offsetLeft = win.width() - area[0];
+      that.offsetTop = that.winHeight() - area[1];
+      that.offsetLeft = that.winWidth() - area[0];
     } else {
       that.offsetTop = config.offset;
     }
@@ -444,10 +461,10 @@ Class.pt.offset = function(){
  
   if(!config.fixed){
     that.offsetTop = /%$/.test(that.offsetTop) ? 
-      win.height()*parseFloat(that.offsetTop)/100
+      that.winHeight()*parseFloat(that.offsetTop)/100
     : parseFloat(that.offsetTop);
     that.offsetLeft = /%$/.test(that.offsetLeft) ? 
-      win.width()*parseFloat(that.offsetLeft)/100
+      that.winWidth()*parseFloat(that.offsetLeft)/100
     : parseFloat(that.offsetLeft);
     that.offsetTop += win.scrollTop();
     that.offsetLeft += win.scrollLeft();
@@ -576,10 +593,11 @@ Class.pt.move = function(){
       dict.stX = fixed ? 0 : win.scrollLeft();
       dict.stY = fixed ? 0 : win.scrollTop();
 
+
       //控制元素不被拖出窗口外
       if(!config.moveOut){
-        var setRig = win.width() - layero.outerWidth() + dict.stX
-        ,setBot = win.height() - layero.outerHeight() + dict.stY;  
+        var setRig = that.winWidth() - layero.outerWidth() + dict.stX
+        ,setBot = that.winHeight() - layero.outerHeight() + dict.stY;  
         X < dict.stX && (X = dict.stX);
         X > setRig && (X = setRig); 
         Y < dict.stY && (Y = dict.stY);
@@ -994,7 +1012,7 @@ layer.prompt = function(options, yes){
     ,btn: ['&#x786E;&#x5B9A;','&#x53D6;&#x6D88;']
     ,content: content
     ,skin: 'layui-layer-prompt' + skin('prompt')
-    ,maxWidth: win.width()
+    ,maxWidth: (win.width() == 0 ? options.maxWidth : win.width())
     ,success: function(layero){
       prompt = layero.find('.layui-layer-input');
       prompt.focus();
